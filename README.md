@@ -4,19 +4,19 @@ Plataforma digital desenvolvida para conectar pequenos agricultores familiares a
 
 ---
 
-## 🎯 Objetivo
+##  Objetivo
 
 Criar uma solução tecnológica que facilite a venda direta de produtos agrícolas, eliminando intermediários e promovendo uma alimentação mais saudável e acessível.
 
 ---
 
-## 💡 Problema
+##  Problema
 
 Muitos pequenos agricultores enfrentam dificuldades para comercializar seus produtos diretamente, enquanto consumidores urbanos têm acesso limitado a alimentos frescos e de origem confiável.
 
 ---
 
-## 🚀 Solução
+##  Solução
 
 O Aproxima propõe uma plataforma digital que conecta produtores e consumidores, permitindo:
 
@@ -27,7 +27,7 @@ O Aproxima propõe uma plataforma digital que conecta produtores e consumidores,
 
 ---
 
-## 💻 Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 - HTML5  
 - CSS3  
@@ -36,7 +36,7 @@ O Aproxima propõe uma plataforma digital que conecta produtores e consumidores,
 
 ---
 
-## ⚙️ Funcionalidades
+##  Funcionalidades
 
 - Cadastro e login de usuários  
 - Diferenciação entre perfis (produtor e consumidor)  
@@ -45,7 +45,7 @@ O Aproxima propõe uma plataforma digital que conecta produtores e consumidores,
 
 ---
 
-## 🌍 Impacto do Projeto
+##  Impacto do Projeto
 
 - Apoio à agricultura familiar  
 - Incentivo ao consumo consciente  
@@ -55,7 +55,7 @@ O Aproxima propõe uma plataforma digital que conecta produtores e consumidores,
 
 ---
 
-## 📚 Contexto Acadêmico
+##  Contexto Acadêmico
 
 Projeto desenvolvido na disciplina de Prática Formativa Extensionista do curso de Engenharia da Computação, com foco em sustentabilidade econômica e impacto social.
 
@@ -67,8 +67,8 @@ Projeto desenvolvido na disciplina de Prática Formativa Extensionista do curso 
 👉 https://juliamf-dev.github.io/aproxima/
 
 ---
+## Autora
 
-##  Autora
-
-Julia M.F.
+Julia M.F.  
 Estudante de ADS e Engenharia da Computação.
+.
