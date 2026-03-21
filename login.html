@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Aproxima</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="supabase.js"></script>
+
+  <style>
+    .gradient-primary {
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+    }
+    .shadow-button {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gray-50 flex flex-col">
+
+  <!-- HEADER MODERNO -->
+  <header class="fixed top-0 left-0 w-full z-40 bg-white/70 backdrop-blur-md shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center px-4 py-3">
+      <button onclick="window.location.href='index.html'"
+        class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition group">
+        <i data-lucide="arrow-left" class="w-5 h-5 text-gray-500 group-hover:text-green-600 transition"></i>
+        <span class="group-hover:underline">Voltar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 flex items-center justify-center px-4 py-8 mt-20">
+    <div class="w-full max-w-md animate-fade-in">
+
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-button">
+          <i data-lucide="leaf" class="w-8 h-8 text-white"></i>
+        </div>
+
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Bem-vindo de volta</h1>
+        <p class="text-gray-500">Entre na sua conta para continuar</p>
+      </div>
+
+      <!-- Formulário -->
+      <div class="space-y-5">
+
+        <!-- Email -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">E-mail</label>
+          <div class="relative">
+            <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+            <input id="email" type="email" placeholder="seu@email.com" required
+              class="pl-12 w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 outline-none">
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">Senha</label>
+          <div class="relative">
+            <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+            <input id="senha" type="password" placeholder="••••••••" required
+              class="pl-12 w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 outline-none">
+          </div>
+        </div>
+
+        <!-- Botão Entrar -->
+        <button onclick="logar()"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg p-3 transition">
+          Entrar
+        </button>
+      </div>
+
+      <!-- Criar conta -->
+      <div class="mt-6 text-center">
+        <p class="text-gray-500">
+          Não tem uma conta?
+          <a href="cadastro.html" class="text-green-600 font-semibold hover:underline">
+            Criar conta
+          </a>
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Inicializa ícones Lucide
+    lucide.createIcons();
+
+    async function logar() {
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+
+      if (!email || !senha) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      // Login com Supabase
+      const { data: login, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha
+      });
+
+      if (error || !login.user) {
+        alert("Erro ao logar: " + (error?.message || "Usuário não encontrado"));
+        return;
+      }
+
+      const user = login.user;
+
+      // Busca perfil
+      const { data: perfil, error: erroPerfil } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (erroPerfil || !perfil) {
+        alert("Erro ao carregar perfil do usuário.");
+        return;
+      }
+
+      // Redirecionamento por role
+      if (perfil.role === "produtor") {
+        window.location.href = "home-produtor.html";
+      } else if (perfil.role === "consumidor") {
+        window.location.href = "listar-produtos.html";
+      } else {
+        alert("Tipo de usuário inválido.");
+      }
+    }
+  </script>
+
+</body>
+</html>

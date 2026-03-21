@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Home do Produtor - Aproxima</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    .gradient-primary {
+      background: linear-gradient(135deg, #66BB6A, #2E7D32);
+      color: white;
+    }
+    .shadow-card { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 1rem; }
+    .shadow-button { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .bg-muted { background-color: #F2F2F2; }
+    .text-muted-foreground { color: #6b7280; }
+    .text-foreground { color: #111827; }
+    .border-border { border: 1px solid #e5e7eb; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<header class="sticky top-0 bg-white/70 backdrop-blur-md border-b border-gray-200 z-50">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    
+     <!-- LOGO + NOME EM DESTAQUE -->
+      <div class="flex items-center gap-3 cursor-pointer group">
+        <img 
+          src="logo.png" 
+          class="w-10 h-10 rounded-lg transition transform group-hover:scale-110 group-hover:brightness-110"
+          alt="Aproxima"
+        >
+        <span 
+          class="text-2xl font-extrabold tracking-tight text-green-600 transition
+                 group-hover:scale-105 group-hover:drop-shadow-md"
+        >
+          Aproxima
+        </span>
+      </div>
+
+    <!-- Botão Perfil Produtor -->
+    <button onclick="window.location.href='perfil-produtor.html'" class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition">
+      <i data-lucide="user" class="w-5 h-5"></i>
+      <span>Perfil</span>
+    </button>
+
+  </div>
+</header>
+
+
+  <main class="max-w-6xl mx-auto px-4 pt-24 pb-12">
+    <!-- Welcome Section -->
+    <section class="mb-8">
+      <h1 id="produtor-nome" class="text-3xl md:text-4xl font-bold text-foreground mb-2">Olá, Produtor! 👋</h1>
+      <p class="text-muted-foreground text-lg">Bem-vindo ao seu painel de produtor</p>
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-10">
+      <div class="shadow-card border-border/50 hover:shadow-lg transition-shadow p-6 flex items-center gap-4 rounded-xl">
+        <div class="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center">
+          <i data-lucide="package" class="w-7 h-7 text-green-700"></i>
+        </div>
+        <div>
+          <p id="produtos-cadastrados" class="text-3xl font-bold text-foreground">0</p>
+          <p class="text-muted-foreground">Produtos cadastrados</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-foreground">Meus Produtos</h2>
+        <button onclick="window.location.href='cadastrar-produto.html'" class="gradient-primary px-4 py-2 rounded-xl flex items-center gap-2 shadow-button hover:opacity-90">
+          <i data-lucide="plus" class="w-4 h-4"></i> Novo Produto
+        </button>
+      </div>
+      <div id="produtos-lista" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Produtos serão inseridos aqui via JS -->
+      </div>
+    </section>
+  </main>
+
+<footer class="py-8 px-4 text-center text-gray-300 text-sm bg-gray-900 border-t border-gray-700">
+  © 2024 Aproxima. Conectando produtores e consumidores.
+</footer>
+  <script>
+    lucide.createIcons();
+
+    // Supabase
+    const SUPABASE_URL = "https://lvleljwkozpfrjdkwtfc.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bGVsandrb3pwZnJqZGt3dGZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2ODM4MTQsImV4cCI6MjA4MDI1OTgxNH0.QOrLrvldnkbICyC91eBQVFXjk5yon6uKjwycUyi0Mxc";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Pegar usuário logado
+    const tokenString = localStorage.getItem('sb-lvleljwkozpfrjdkwtfc-auth-token');
+    const user = tokenString ? JSON.parse(tokenString).user : null;
+
+    if (!user) {
+      alert("Usuário não logado!");
+      window.location.href = "index.html";
+    }
+
+    const userId = user.id;
+
+    // Carregar dados do produtor
+    async function carregarHome() {
+      // Buscar perfil
+      const { data: perfil, error: erroPerfil } = await supabaseClient
+        .from("perfis")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (erroPerfil) {
+        console.error(erroPerfil);
+        alert("Erro ao carregar informações do produtor.");
+        return;
+      }
+
+      document.getElementById("produtor-nome").textContent = `Olá, ${perfil.nome}! 👋`;
+
+      // Buscar produtos do produtor
+      const { data: produtos, error: erroProdutos } = await supabaseClient
+        .from("produtos")
+        .select("*")
+        .eq("produtor_id", perfil.id)  // usa o id da tabela perfis
+        .order("id", { ascending: false });
+
+      if (erroProdutos) {
+        console.error(erroProdutos);
+        alert("Erro ao carregar produtos.");
+        return;
+      }
+
+      document.getElementById("produtos-cadastrados").textContent = produtos.length;
+
+      const listaProdutos = document.getElementById("produtos-lista");
+      listaProdutos.innerHTML = "";
+
+      produtos.forEach(produto => {
+        const card = document.createElement("div");
+        card.className = "shadow-card border-border/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 rounded-xl overflow-hidden cursor-pointer";
+        card.innerHTML = `
+          <div class="aspect-square overflow-hidden">
+            <img src="${produto.imagem_url || 'https://via.placeholder.com/200'}" alt="${produto.nome}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-foreground mb-1">${produto.nome}</h3>
+            <p class="text-green-700 font-bold text-lg">R$ ${produto.preco.toFixed(2).replace('.', ',')}</p>
+          </div>
+        `;
+        card.onclick = () => window.location.href = `editar-produto.html?id=${produto.id}`;
+        listaProdutos.appendChild(card);
+      });
+    }
+
+    carregarHome();
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('sb-lvleljwkozpfrjdkwtfc-auth-token');
+      alert("Você saiu da conta!");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

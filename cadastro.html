@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Criar Conta - Aproxima</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="supabase.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .gradient-primary {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+    }
+    .shadow-card {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .shadow-button {
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- HEADER MODERNO -->
+<header class="fixed top-0 left-0 w-full z-40 bg-white/70 backdrop-blur-md shadow-sm">
+  <div class="max-w-6xl mx-auto flex items-center px-4 py-3">
+
+    <button onclick="history.back()"
+      class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition group">
+
+      <!-- Ícone -->
+      <i data-lucide="arrow-left"
+         class="w-5 h-5 text-gray-500 group-hover:text-green-600 transition"></i>
+
+      <!-- Texto -->
+      <span class="group-hover:underline">Voltar</span>
+    </button>
+
+  </div>
+</header>
+
+
+  <!-- Conteúdo Principal -->
+  <main class="flex-1 flex items-center justify-center px-4 py-10 mt-2">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-card p-8 animate-fade-in">
+
+      <!-- Logo -->
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl gradient-primary shadow-button flex items-center justify-center">
+          <i data-lucide="leaf" class="w-8 h-8 text-white"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mt-4">Criar conta</h1>
+        <p class="text-gray-500">Junte-se à comunidade Aproxima</p>
+      </div>
+
+      <div class="space-y-4">
+
+        <!-- Nome -->
+        <div>
+          <label class="text-sm font-medium">Nome completo</label>
+          <div class="relative mt-1">
+            <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+            <input id="nome" class="w-full pl-12 border border-gray-300 rounded-lg p-2 focus:ring focus:ring-green-200" placeholder="Seu nome">
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="text-sm font-medium">Email</label>
+          <div class="relative mt-1">
+            <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+            <input id="email" type="email" class="w-full pl-12 border border-gray-300 rounded-lg p-2 focus:ring focus:ring-green-200" placeholder="seu@email.com">
+          </div>
+        </div>
+
+        <!-- Telefone -->
+        <div>
+          <label class="text-sm font-medium">Telefone</label>
+          <div class="relative mt-1">
+            <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+            <input id="telefone" class="w-full pl-12 border border-gray-300 rounded-lg p-2 focus:ring focus:ring-green-200" placeholder="(00) 00000-0000">
+          </div>
+        </div>
+
+        <!-- Tipo de conta -->
+        <div>
+          <label class="text-sm font-medium">Tipo de conta</label>
+          <select id="tipo" class="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring focus:ring-green-200">
+            <option value="produtor">Produtor</option>
+            <option value="consumidor">Consumidor</option>
+          </select>
+        </div>
+
+        <!-- Senha -->
+        <div>
+          <label class="text-sm font-medium">Senha</label>
+          <div class="relative mt-1">
+            <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+            <input id="senha" type="password" class="w-full pl-12 border border-gray-300 rounded-lg p-2 focus:ring focus:ring-green-200" placeholder="••••••••">
+          </div>
+        </div>
+
+        <!-- Botão -->
+        <button onclick="criarConta()"
+          class="w-full mt-6 gradient-primary text-white py-3 rounded-xl font-medium hover:opacity-90 shadow-button">
+          Criar conta
+        </button>
+
+      </div>
+
+      <p class="text-center text-gray-500 text-sm mt-4">
+        Já tem uma conta?
+        <a href="login.html" class="text-green-600 font-semibold hover:underline">
+          Entrar
+        </a>
+      </p>
+
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    async function criarConta() {
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+      const nome = document.getElementById("nome").value;
+      const telefone = document.getElementById("telefone").value;
+      const tipo = document.getElementById("tipo").value;
+
+      if (!email || !senha || !nome || !telefone || !tipo) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      // Criar usuário no Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: senha
+      });
+
+      if (error) {
+        alert("Erro ao criar conta: " + error.message);
+        return;
+      }
+
+      const user_id = data.user.id;
+
+      // Inserir no PERFIS
+      const { error: erroPerfil } = await supabase.from("perfis").insert({
+        nome,
+        telefone,
+        user_id,
+        role: tipo   // agora "produtor" ou "consumidor"
+      });
+
+      if (erroPerfil) {
+        alert("Erro ao salvar perfil: " + erroPerfil.message);
+        return;
+      }
+
+      alert("Conta criada com sucesso!");
+      window.location.href = "login.html";
+    }
+  </script>
+
+</body>
+</html>

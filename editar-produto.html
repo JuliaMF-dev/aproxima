@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Produtos - Aproxima</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .gradient-primary {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+    }
+    .shadow-card { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .shadow-button { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .bg-muted { background-color: #f2f2f2; }
+    .bg-card { background-color: #ffffff; }
+    .text-foreground { color: #111827; }
+    .border-border { border-color: #e5e7eb; }
+    .modal-bg { background: rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-button">
+        <i data-lucide="leaf" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-xl font-bold text-foreground">Aproxima</span>
+    </div>
+    <button onclick="window.location.href='perfil-produtor.html'" class="p-2 rounded-full hover:bg-gray-200 transition">
+      <i data-lucide="user" class="w-5 h-5"></i>
+    </button>
+  </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 pt-24 pb-12">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl md:text-4xl font-bold text-foreground mb-2">Meus Produtos</h1>
+      <p class="text-gray-500">Gerencie seus produtos cadastrados</p>
+    </div>
+    <button id="btn-add-produto" class="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-white shadow-button hover:opacity-90">
+      <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Produto
+    </button>
+  </div>
+
+  <!-- Lista de Produtos -->
+  <div id="lista-produtos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+</main>
+
+<!-- Modal -->
+<div id="modal-produto" class="fixed inset-0 hidden items-center justify-center modal-bg z-50">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 relative">
+    <button id="fechar-modal" class="absolute top-4 right-4">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+    <h2 id="modal-titulo" class="text-xl font-bold mb-4">Adicionar Produto</h2>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-gray-700 mb-1">Nome do Produto *</label>
+        <input id="input-nome" type="text" class="w-full border border-border rounded-xl p-2" placeholder="Ex: Tomates Orgânicos">
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">Categoria *</label>
+        <select id="input-categoria" class="w-full border border-border rounded-xl p-2">
+          <option value="">Selecione uma categoria</option>
+          <option value="Frutas">Frutas</option>
+          <option value="Verduras">Verduras</option>
+          <option value="Legumes">Legumes</option>
+          <option value="Grãos">Grãos</option>
+          <option value="Laticínios">Laticínios</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-700 mb-1">Preço (R$) *</label>
+          <input id="input-preco" type="number" step="0.01" min="0" class="w-full border border-border rounded-xl p-2" placeholder="0,00">
+        </div>
+        <div>
+          <label class="block text-gray-700 mb-1">Quantidade *</label>
+          <input id="input-quantidade" type="number" min="0" class="w-full border border-border rounded-xl p-2" placeholder="0">
+        </div>
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">Descrição</label>
+        <textarea id="input-descricao" rows="3" class="w-full border border-border rounded-xl p-2" placeholder="Descreva seu produto..."></textarea>
+      </div>
+    </div>
+
+    <div class="flex gap-3 mt-4">
+      <button id="btn-cancelar" class="flex-1 border border-gray-400 text-gray-700 py-2 rounded-xl">Cancelar</button>
+      <button id="btn-salvar" class="flex-1 gradient-primary text-white py-2 rounded-xl shadow-button hover:opacity-90">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+lucide.createIcons();
+
+/* ---------------------------------------------
+   CONFIGURAÇÃO DO SUPABASE
+---------------------------------------------- */
+const SUPABASE_URL = "https://pxwpmvcxnkpeygxtrumx.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4d3BtdmN4bmtwZXlneHRydW14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1MjA5MzgsImV4cCI6MjA0NzA5NjkzOH0.HkbYyWi5U53vgqp5H8Gtgb5mxKPKKogQbl0qh84uLgc";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+/* ---------------------------------------------
+   ELEMENTOS DA PÁGINA
+---------------------------------------------- */
+const listaProdutos = document.getElementById("lista-produtos");
+const modal = document.getElementById("modal-produto");
+const modalTitulo = document.getElementById("modal-titulo");
+
+const inputNome = document.getElementById("input-nome");
+const inputCategoria = document.getElementById("input-categoria");
+const inputPreco = document.getElementById("input-preco");
+const inputQuantidade = document.getElementById("input-quantidade");
+const inputDescricao = document.getElementById("input-descricao");
+
+let editandoProduto = null;
+let perfil = null;
+
+
+/* ---------------------------------------------
+   CARREGAR PERFIL DO USUÁRIO LOGADO
+---------------------------------------------- */
+async function carregarPerfil() {
+  const { data: auth } = await supabase.auth.getUser();
+
+  if (!auth.user) {
+    alert("Você precisa estar logado.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const userId = auth.user.id;
+
+  const { data: perfilData, error: perfilError } = await supabase
+    .from("perfis")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (perfilError || !perfilData) {
+    console.error("Erro ao carregar perfil:", perfilError);
+    alert("Erro ao carregar seu perfil.");
+    return;
+  }
+
+  perfil = perfilData;
+  carregarProdutos();
+}
+
+
+/* ---------------------------------------------
+   CARREGAR PRODUTOS DO PRODUTOR
+---------------------------------------------- */
+async function carregarProdutos() {
+  listaProdutos.innerHTML = `<p class="text-gray-500">Carregando produtos...</p>`;
+
+  const { data: produtos, error } = await supabase
+    .from("produtos")
+    .select("*")
+    .eq("produtor_id", perfil.id);
+
+  if (error) {
+    console.error("Erro ao buscar produtos:", error);
+    listaProdutos.innerHTML = `<p class="text-red-600">Erro ao carregar produtos.</p>`;
+    return;
+  }
+
+  if (!produtos.length) {
+    listaProdutos.innerHTML = `
+      <div class="bg-white rounded-2xl shadow p-6 text-center col-span-full">
+        <p class="text-gray-500 mb-4">Nenhum produto cadastrado.</p>
+        <button id="btn-add-vazio" class="gradient-primary text-white px-4 py-2 rounded-xl">
+          Adicionar Produto
+        </button>
+      </div>
+    `;
+
+    document.getElementById("btn-add-vazio").addEventListener("click", abrirModalNovoProduto);
+    return;
+  }
+
+  renderizarProdutos(produtos);
+}
+
+
+/* ---------------------------------------------
+   RENDERIZAR PRODUTOS NA TELA
+---------------------------------------------- */
+function renderizarProdutos(produtos) {
+  listaProdutos.innerHTML = "";
+
+  produtos.forEach((produto) => {
+    const card = document.createElement("div");
+    card.className = "bg-card rounded-2xl shadow-card overflow-hidden";
+
+    card.innerHTML = `
+      <div class="aspect-video overflow-hidden bg-muted">
+        <img src="${produto.imagem_url || "https://placehold.co/600x400"}"
+             class="w-full h-full object-cover">
+      </div>
+
+      <div class="p-5">
+        <h3 class="font-semibold text-lg">${produto.nome}</h3>
+
+        <span class="inline-block px-2 py-1 mt-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+          ${produto.categoria}
+        </span>
+
+        <div class="flex justify-between mt-2 text-sm">
+          <span>Preço:</span>
+          <span class="font-semibold text-green-700">
+            R$ ${produto.preco.toFixed(2).replace(".", ",")}
+          </span>
+        </div>
+
+        <div class="flex justify-between text-sm mb-2">
+          <span>Quantidade:</span>
+          <span class="font-medium">${produto.quantidade} un.</span>
+        </div>
+
+        <div class="flex gap-2 mt-2">
+          <button class="editar-produto flex-1 border border-green-700 text-green-700 py-1 rounded-xl"
+            data-id="${produto.id}">Editar</button>
+
+          <button class="excluir-produto flex-1 border border-red-600 text-red-600 py-1 rounded-xl"
+            data-id="${produto.id}">Excluir</button>
+        </div>
+      </div>
+    `;
+
+    listaProdutos.appendChild(card);
+  });
+
+  document.querySelectorAll(".editar-produto").forEach((btn) => {
+    btn.addEventListener("click", () => abrirModalEdicao(btn.dataset.id));
+  });
+
+  document.querySelectorAll(".excluir-produto").forEach((btn) => {
+    btn.addEventListener("click", () => excluirProduto(btn.dataset.id));
+  });
+}
+
+
+/* ---------------------------------------------
+   ABRIR MODAL PARA EDIÇÃO
+---------------------------------------------- */
+async function abrirModalEdicao(id) {
+  editandoProduto = id;
+
+  const { data: produto, error } = await supabase
+    .from("produtos")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) return alert("Erro ao carregar produto.");
+
+  modalTitulo.textContent = "Editar Produto";
+
+  inputNome.value = produto.nome;
+  inputCategoria.value = produto.categoria;
+  inputPreco.value = produto.preco;
+  inputQuantidade.value = produto.quantidade;
+  inputDescricao.value = produto.descricao;
+
+  modal.classList.remove("hidden");
+}
+
+
+/* ---------------------------------------------
+   SALVAR (CRIAR OU EDITAR)
+---------------------------------------------- */
+document.getElementById("btn-salvar").addEventListener("click", async () => {
+  const nome = inputNome.value.trim();
+  const categoria = inputCategoria.value;
+  const preco = parseFloat(inputPreco.value);
+  const quantidade = parseInt(inputQuantidade.value);
+  const descricao = inputDescricao.value;
+
+  if (!nome || !categoria || !preco || !quantidade) {
+    alert("Preencha todos os campos obrigatórios!");
+    return;
+  }
+
+  // EDITANDO
+  if (editandoProduto) {
+    const { error } = await supabase
+      .from("produtos")
+      .update({
+        nome,
+        categoria,
+        preco,
+        quantidade,
+        descricao,
+      })
+      .eq("id", editandoProduto);
+
+    if (error) return alert("Erro ao atualizar produto.");
+  }
+
+  // NOVO PRODUTO
+  else {
+    const { error } = await supabase.from("produtos").insert({
+      nome,
+      categoria,
+      preco,
+      quantidade,
+      descricao,
+      produtor_id: perfil.id,
+      imagem_url:
+        "https://placehold.co/600x400?text=Sem+Imagem",
+    });
+
+    if (error) return alert("Erro ao criar produto.");
+  }
+
+  modal.classList.add("hidden");
+  carregarProdutos();
+});
+
+
+/* ---------------------------------------------
+   EXCLUIR PRODUTO
+---------------------------------------------- */
+async function excluirProduto(id) {
+  if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+
+  const { error } = await supabase.from("produtos").delete().eq("id", id);
+
+  if (error) {
+    alert("Erro ao excluir produto.");
+    return;
+  }
+
+  carregarProdutos();
+}
+
+
+/* ---------------------------------------------
+   OUTROS CONTROLES
+---------------------------------------------- */
+document.getElementById("btn-add-produto").addEventListener("click", () => {
+  editandoProduto = null;
+  modalTitulo.textContent = "Adicionar Produto";
+  inputNome.value = "";
+  inputCategoria.value = "";
+  inputPreco.value = "";
+  inputQuantidade.value = "";
+  inputDescricao.value = "";
+  modal.classList.remove("hidden");
+});
+
+document.getElementById("btn-cancelar").addEventListener("click", () =>
+  modal.classList.add("hidden")
+);
+document.getElementById("fechar-modal").addEventListener("click", () =>
+  modal.classList.add("hidden")
+);
+
+/* ---------------------------------------------
+   INICIAR
+---------------------------------------------- */
+carregarPerfil();
+</script>
+
+
+</body>
+</html>

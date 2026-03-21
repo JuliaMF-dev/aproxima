@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastrar Produto - Aproxima</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="supabase.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .gradient-primary {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+    }
+    .shadow-card {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .shadow-button {
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- HEADER MODERNO -->
+  <header class="fixed top-0 left-0 w-full z-40 bg-white/70 backdrop-blur-md shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center px-4 py-3">
+      <button onclick="history.back()"
+        class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition group">
+
+        <i data-lucide="arrow-left" class="w-5 h-5 text-gray-500 group-hover:text-green-600 transition"></i>
+        <span class="group-hover:underline">Voltar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 flex items-center justify-center px-4 py-20 mt-2">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-card p-8 animate-fade-in">
+
+      <h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Cadastrar Produto</h1>
+
+      <div class="space-y-4">
+        <!-- Nome do Produto -->
+        <div>
+          <label class="text-sm font-medium">Nome do produto</label>
+          <input id="nome" placeholder="Nome do produto"
+            class="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring focus:ring-green-200">
+        </div>
+
+        <!-- Preço -->
+        <div>
+          <label class="text-sm font-medium">Preço</label>
+          <input id="preco" type="number" step="0.01" placeholder="Preço"
+            class="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring focus:ring-green-200">
+        </div>
+
+        <!-- Descrição -->
+        <div>
+          <label class="text-sm font-medium">Descrição</label>
+          <textarea id="descricao" placeholder="Descrição do produto"
+            class="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring focus:ring-green-200"></textarea>
+        </div>
+
+        <!-- Localização -->
+        <div>
+          <label class="text-sm font-medium">Localização</label>
+          <input id="localizacao" placeholder="Bairro, cidade..."
+            class="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring focus:ring-green-200">
+        </div>
+
+        <!-- Foto -->
+        <div>
+          <label class="text-sm font-medium">Foto do produto</label>
+          <input id="foto" type="file" class="w-full mt-1">
+        </div>
+
+        <!-- Botão Salvar -->
+        <button onclick="salvar()"
+          class="w-full mt-4 gradient-primary text-white py-3 rounded-xl font-medium hover:opacity-90 shadow-button">
+          Salvar Produto
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Inicializa ícones Lucide -->
+  <script>
+    lucide.createIcons();
+  </script>
+
+  <!-- Verificação de acesso -->
+  <script>
+    async function verificarAcesso() {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        window.location.href = "login.html"; // redireciona se não logado
+        return;
+      }
+
+      const { data: perfil, error } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .single();
+
+      if (error || !perfil) {
+        alert("Erro ao carregar perfil do usuário.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      if (perfil.role !== "produtor") {
+        alert("Acesso negado! Somente produtores podem cadastrar produtos.");
+        window.location.href = "listar-produtos.html";
+      }
+    }
+
+    verificarAcesso();
+  </script>
+
+  <!-- Script de cadastro do produto -->
+  <script>
+    async function salvar() {
+      const nome = document.getElementById("nome").value;
+      const preco = document.getElementById("preco").value;
+      const descricao = document.getElementById("descricao").value;
+      const localizacao = document.getElementById("localizacao").value;
+      const foto = document.getElementById("foto").files[0];
+
+      if (!nome || !preco || !descricao || !localizacao || !foto) {
+        alert("Preencha todos os campos e selecione uma foto.");
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        alert("Você precisa estar logado para cadastrar produtos.");
+        return;
+      }
+
+      const user = userData.user;
+
+      // Pega perfil do produtor
+      const { data: prod, error } = await supabase
+        .from("perfis")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error || !prod) {
+        alert("Erro ao carregar informações do produtor.");
+        return;
+      }
+
+      // Upload da imagem
+      const filePath = `produtos/${Date.now()}-${foto.name}`;
+      const { error: erroUpload } = await supabase
+        .storage
+        .from("imagens-produtos")
+        .upload(filePath, foto);
+
+      if (erroUpload) {
+        alert("Erro ao fazer upload da imagem: " + erroUpload.message);
+        return;
+      }
+
+      const urlPublica = `${SUPABASE_URL}/storage/v1/object/public/imagens-produtos/${filePath}`;
+
+      // Inserir o produto
+      const { error: erroInsert } = await supabase.from("produtos").insert({
+        nome,
+        preco,
+        descricao,
+        localizacao,
+        imagem_url: urlPublica,
+        produtor_id: prod.id
+      });
+
+      if (erroInsert) {
+        alert("Erro ao salvar produto: " + erroInsert.message);
+        return;
+      }
+
+      alert("Produto cadastrado com sucesso!");
+
+      // Limpar campos
+      document.getElementById("nome").value = "";
+      document.getElementById("preco").value = "";
+      document.getElementById("descricao").value = "";
+      document.getElementById("localizacao").value = "";
+      document.getElementById("foto").value = "";
+    }
+  </script>
+
+</body>
+</html>
