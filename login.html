@@ -110,7 +110,7 @@
       // Login com Supabase
       const { data: login, error } = await supabase.auth.signInWithPassword({
         email,
-        password: senha
+        password: senhas
       });
 
       if (error || !login.user) {
