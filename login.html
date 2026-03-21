@@ -95,26 +95,53 @@
   </main>
 
   <script>
-  // Inicializa ícones Lucide
-  lucide.createIcons();
+    // Inicializa ícones Lucide
+    lucide.createIcons();
 
-  function logar() {
-    const email = document.getElementById("email").value;
-    const senha = document.getElementById("senha").value;
+    async function logar() {
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
 
-    if (!email || !senha) {
-      alert("Preencha todos os campos.");
-      return;
+      if (!email || !senha) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      // Login com Supabase
+      const { data: login, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha
+      });
+
+      if (error || !login.user) {
+        alert("Erro ao logar: " + (error?.message || "Usuário não encontrado"));
+        return;
+      }
+
+      const user = login.user;
+
+      // Busca perfil
+      const { data: perfil, error: erroPerfil } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (erroPerfil || !perfil) {
+        alert("Erro ao carregar perfil do usuário.");
+        return;
+      }
+
+      // Redirecionamento por role
+      if (perfil.role === "produtor") {
+        window.location.href = "home-produtor.html";
+      } else if (perfil.role === "consumidor") {
+        window.location.href = "listar-produtos.html";
+      } else {
+        alert("Tipo de usuário inválido.");
+      }
     }
-
-    // Modo demonstração para portfólio
-    if (email.toLowerCase().includes("produtor")) {
-      window.location.href = "home-produtor.html";
-    } else {
-      window.location.href = "listar-produtos.html";
-    }
-  }
-</script>
+  </script>
 
 </body>
 </html>
