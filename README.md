@@ -61,6 +61,14 @@ Projeto desenvolvido na disciplina de Prática Formativa Extensionista do curso 
 
 
 ---
+## 📸 Preview do Projeto
+
+<div align="center">
+  <img src="assets/ft.png" width="200"/>
+  <img src="assets/ft2.jpeg" width="200"/>
+  <img src="assets/ft3.jpeg" width="200"/>
+  <img src="assets/ft4.jpeg" width="200"/>
+</div>
 
 ## 🔗 Acesse o projeto
 
