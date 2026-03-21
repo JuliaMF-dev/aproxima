@@ -59,7 +59,6 @@ O Aproxima propõe uma plataforma digital que conecta produtores e consumidores,
 
 Projeto desenvolvido na disciplina de Prática Formativa Extensionista do curso de Engenharia da Computação, com foco em sustentabilidade econômica e impacto social.
 
-:contentReference[oaicite:0]{index=0}
 
 ---
 
@@ -69,6 +68,7 @@ Projeto desenvolvido na disciplina de Prática Formativa Extensionista do curso 
 
 ---
 
-## 👩‍💻 Autora
+##  Autora
 
-Julia Mendes Frazão
+Julia M.F.
+Estudante de ADS e Engenharia da Computação.
