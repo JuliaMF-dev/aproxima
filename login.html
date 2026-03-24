@@ -102,6 +102,12 @@
       const email = document.getElementById("email").value;
       const senha = document.getElementById("senha").value;
 
+
+    console.log("window.supabase:", window.supabase);
+    console.log("supabaseClient:", supabaseClient);
+    console.log("supabaseClient.auth:", supabaseClient?.auth);
+
+
       if (!email || !senha) {
         alert("Preencha todos os campos.");
         return;
