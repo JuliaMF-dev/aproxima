@@ -108,7 +108,7 @@
       }
 
       // Login com Supabase
-      const { data: login, error } = await supabase.auth.signInWithPassword({
+      const { data: login, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password: senha
       });
@@ -118,7 +118,7 @@
         return;
       }
 
-      const user = login.user;
+      const user = data.user;
 
       // Busca perfil
       const { data: perfil, error: erroPerfil } = await supabase
